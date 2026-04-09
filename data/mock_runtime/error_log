@@ -1,3 +1,0 @@
-[notice] Apache graceful restart initiated
-[error] jk2_init() Can't find child 1566 in scoreboard
-[error] jk2_init() Can't find child 1567 in scoreboard

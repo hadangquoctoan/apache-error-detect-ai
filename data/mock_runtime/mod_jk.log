@@ -1,3 +1,0 @@
-[error] connect_to_backend failed: Connection refused
-[error] ajp_send_request failed
-[error] backend worker unreachable on localhost:8009

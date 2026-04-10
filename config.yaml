@@ -1,0 +1,52 @@
+# Application Configuration
+# Central configuration for AI Log Analysis Service
+
+app:
+  env: development
+  debug: true
+  log_level: INFO
+
+loki:
+  host: loki
+  port: 3100
+  base_url: http://loki:3100
+  max_lines: 1000
+  query_timeout: 60
+
+llm:
+  provider: gemini  # openai, anthropic, ollama, gemini
+  openai:
+    api_key: ${OPENAI_API_KEY}
+    model: gpt-4-turbo-preview
+    temperature: 0.0
+    max_tokens: 2048
+  anthropic:
+    api_key: ${ANTHROPIC_API_KEY}
+    model: claude-3-opus-20240229
+    max_tokens: 2048
+  ollama:
+    base_url: http://localhost:11434
+    model: llama2
+  gemini:
+    api_key: ${GEMINI_API_KEY}
+    model: gemini-pro
+    temperature: 0.0
+    max_tokens: 2048
+
+celery:
+  broker_url: redis://redis:6379/0
+  result_backend: redis://redis:6379/0
+  task_default_queue: log_analysis
+
+analysis:
+  max_logs_per_request: 500
+  timeout: 120
+  streaming_enabled: true
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  cors_origins:
+    - http://localhost:3000
+    - http://localhost:5173

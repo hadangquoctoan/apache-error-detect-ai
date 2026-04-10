@@ -20,3 +20,4 @@ data/
 logs/collect/*.log
 
 rules/set-language.mdc
+key_api.txt

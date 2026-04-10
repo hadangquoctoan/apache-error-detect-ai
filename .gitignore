@@ -16,5 +16,7 @@ __pycache__/
 # Project specific
 data/
 *.log
+# Alloy: keep logs/collect/ but ignore dropped-in log files
+logs/collect/*.log
 
 rules/set-language.mdc

@@ -1,0 +1,49 @@
+# Grafana Alloy + Loki (optional but recommended so pushes succeed).
+# Alloy UI: http://localhost:12345
+# Loki API: http://localhost:3100
+
+services:
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./deploy/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    networks:
+      - observability
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
+    depends_on:
+      - loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    ports:
+      - "12345:12345"
+    environment:
+      # Push endpoint for loki.write in config.alloy
+      LOKI_PUSH_URL: http://loki:3100/loki/api/v1/push
+    volumes:
+      - ./deploy/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy/data
+      # Put Apache (or any) *.log files under ./logs/collect/ on the host
+      - ./logs/collect:/var/log/collect:ro
+    networks:
+      - observability
+    restart: unless-stopped
+
+networks:
+  observability:
+    driver: bridge
+
+volumes:
+  loki_data:
+  alloy_data:

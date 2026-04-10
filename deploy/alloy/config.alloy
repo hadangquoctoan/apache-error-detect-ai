@@ -1,0 +1,88 @@
+// Grafana Alloy — collect, process, and forward Apache logs to Loki.
+// Docs: https://grafana.com/docs/alloy/latest/
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+// ============================================================
+// 1. Find file log
+// ============================================================
+// Host layout: ./logs/collect/**/access.log and ./logs/collect/**/error.log
+local.file_match "apache_logs" {
+  path_targets = [
+    {
+      __path__   = "/var/log/collect/**/access.log",
+      job        = "apache",
+      log_type   = "access",
+      env        = "dev",
+    },
+    {
+      __path__   = "/var/log/collect/**/error.log",
+      job        = "apache",
+      log_type   = "error",
+      env        = "dev",
+    },
+  ]
+  sync_period = "5s"
+}
+
+// ============================================================
+// 2. Log execution - Labels data
+// ============================================================
+loki.process "apache_processing" {
+  forward_to = [loki.write.default.receiver]
+
+  // === ACCESS LOG ===
+  stage.match {
+    selector = "{log_type=\"access\"}"
+
+    stage.regex {
+      expression = "^(?P<ip>\\S+) \\S+ \\S+ \\[.*\\] \"(?P<method>\\S+) (?P<path>\\S+) \\S+\" (?P<status>\\d+) \\d+"
+    }
+    stage.labels {
+      values = {
+        status_code = "status",
+        method      = "method",
+        path        = "path",
+      }
+    }
+  }
+
+  // ===  ERROR LOG ===
+  stage.match {
+    selector = "{log_type=\"error\"}"
+
+    stage.regex {
+      expression = "\\[AH(?P<ah_code>\\d+)\\]: (?P<error_msg>.*)"
+    }
+    stage.labels {
+      values = {
+        ah_code = "ah_code",
+      }
+    }
+  }
+}
+
+// ============================================================
+// 3. Read file and move to processor
+// ============================================================
+loki.source.file "apache_tail" {
+  targets    = local.file_match.apache_logs.targets
+  forward_to = [loki.process.apache_processing.receiver]
+}
+
+// ============================================================
+// 4. Loki Transportation
+// ============================================================
+loki.write "default" {
+  endpoint {
+    url = sys.env("LOKI_PUSH_URL")
+  }
+  external_labels = {
+    cluster = "local",
+    service = "apache",
+    owner   = "toan_fptu",
+  }
+}

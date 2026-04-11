@@ -64,7 +64,7 @@ class RAGService:
         try:
             # Import các thư viện cần thiết
             from chromadb import PersistentClient
-            from langchain_ollama import OllamaEmbeddings
+            from langchain_community.embeddings import OllamaEmbeddings
 
             # Khởi tạo Ollama embeddings
             logger.info(f"Khởi tạo Ollama embeddings: {self.embedding_model}")
@@ -172,12 +172,14 @@ class RAGService:
         query_embedding = self._embeddings.embed_query(query)
 
         # Search
-        results = self._collection.query(
-            query_embeddings=[query_embedding],
-            n_results=k,
-            where=filter_metadata,
-            include=["documents", "metadatas", "distances"]
-        )
+        query_kwargs = {
+            "query_embeddings": [query_embedding],
+            "n_results": k,
+            "include": ["documents", "metadatas", "distances"]
+        }
+        if filter_metadata:
+            query_kwargs["where"] = filter_metadata
+        results = self._collection.query(**query_kwargs)
 
         # Parse results
         contexts = []

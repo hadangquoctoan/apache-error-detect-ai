@@ -1,7 +1,7 @@
 # API v1 - Log Analysis Endpoints
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -12,6 +12,7 @@ from app.models.schemas import (
     LogStats,
     HealthResponse,
     ErrorResponse,
+    ParseLogRequest,
 )
 from app.services.llm_service import get_llm_service
 from app.services.log_parser import get_log_parser
@@ -141,23 +142,17 @@ async def analyze_logs_stream(request: AnalyzeLogRequest):
 
 
 @router.post("/parse", response_model=Dict)
-async def parse_logs_only(
-    access_logs: List[str] = None,
-    error_logs: List[str] = None
-):
+async def parse_logs_only(request: ParseLogRequest):
     """
     Parse and summarize logs only (without calling AI).
 
     Useful for verifying that logs are parsed correctly.
     """
-    access_logs = access_logs or []
-    error_logs = error_logs or []
-
     parser = get_log_parser()
-    stats = parser.get_statistics(access_logs, error_logs)
+    stats = parser.get_statistics(request.access_logs, request.error_logs)
 
     return {
         "stats": stats.to_dict(),
-        "access_entries": len(parser.parse_access_log(access_logs)),
-        "error_entries": len(parser.parse_error_log(error_logs)),
+        "access_entries": len(parser.parse_access_log(request.access_logs)),
+        "error_entries": len(parser.parse_error_log(request.error_logs)),
     }

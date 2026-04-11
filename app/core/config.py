@@ -10,7 +10,7 @@ from pydantic import Field
 class LLMGeminiSettings(BaseSettings):
     """Gemini configuration."""
     api_key: str = Field(default="", alias="GEMINI_API_KEY")
-    model: str = Field(default="gemini-1.5-flash", alias="GEMINI_MODEL")
+    model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
     temperature: float = Field(default=0.0, alias="GEMINI_TEMPERATURE")
     max_tokens: int = Field(default=2048, alias="GEMINI_MAX_TOKENS")
 
@@ -101,6 +101,29 @@ class APISettings(BaseSettings):
         extra = "ignore"
 
 
+class RAGSettings(BaseSettings):
+    """RAG / Vector store configuration."""
+    embedding_model: str = Field(default="nomic-embed-text", alias="RAG_EMBEDDING_MODEL")
+    embedding_dim: int = Field(default=768, alias="RAG_EMBEDDING_DIM")
+    vector_db_path: str = Field(default="./data/vector_store", alias="RAG_VECTOR_DB_PATH")
+    top_k: int = Field(default=5, alias="RAG_TOP_K")
+    min_score: float = Field(default=0.5, alias="RAG_MIN_SCORE")
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
+
+
+class OllamaSettings(BaseSettings):
+    """Ollama configuration."""
+    base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+    model: str = Field(default="llama2", alias="OLLAMA_MODEL")
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
+
+
 class AppSettings(BaseSettings):
     """Application configuration."""
     env: str = Field(default="development", alias="APP_ENV")
@@ -120,6 +143,8 @@ class Settings(BaseSettings):
     redis: RedisSettings = RedisSettings()
     analysis: AnalysisSettings = AnalysisSettings()
     api: APISettings = APISettings()
+    rag: RAGSettings = RAGSettings()
+    ollama: OllamaSettings = OllamaSettings()
 
     class Config:
         env_file = ".env"

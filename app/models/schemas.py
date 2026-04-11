@@ -28,6 +28,18 @@ class AnalyzeLogRequest(BaseModel):
     )
 
 
+class ParseLogRequest(BaseModel):
+    """Request payload for log parsing only (no AI)."""
+    access_logs: List[str] = Field(
+        default=[],
+        description="List of access log lines (access.log)"
+    )
+    error_logs: List[str] = Field(
+        default=[],
+        description="List of error log lines (error.log)"
+    )
+
+
 class LogStats(BaseModel):
     """Log statistics."""
     total_requests: int

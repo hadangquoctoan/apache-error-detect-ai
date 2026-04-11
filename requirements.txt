@@ -45,5 +45,5 @@ python-multipart==0.0.9
 # ===================
 chromadb==0.4.22
 langchain-chroma==0.1.2
-langchain-ollama==0.1.2
+langchain-community==0.0.38
 sentence-transformers==2.5.1
